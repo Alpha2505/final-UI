@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:login_ui/common/theme_helper.dart';
 import 'package:login_ui/pages/verify_done.dart';
 
+import 'home.dart';
 
-class pass extends StatefulWidget{
+class pass extends StatefulWidget {
   @override
   _passState createState() => _passState();
 }
@@ -14,6 +15,9 @@ class _passState extends State<pass> {
   double _headerHeight = 75;
   Key _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
+  String oldPass = '';
+  String newPass = '';
+  String rePass = '';
 
   void _showcontent() {
     showDialog(
@@ -55,13 +59,13 @@ class _passState extends State<pass> {
         toolbarHeight: 75,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20)),
             gradient: LinearGradient(
                 colors: [Colors.teal.shade400, Colors.grey],
                 begin: Alignment.bottomCenter,
-                end: Alignment.topCenter
-            ),
+                end: Alignment.topCenter),
           ),
         ),
       ),
@@ -81,50 +85,78 @@ class _passState extends State<pass> {
                       Container(
                         margin: EdgeInsets.only(top: 0),
                       ),
-                      Image.asset('assets/images/reset.png', height: 250,),
-
-                      Text(
-                          'Set New Password',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 21)
+                      Image.asset(
+                        'assets/images/reset.png',
+                        height: 250,
                       ),
-
+                      Text('Set New Password',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 21)),
                       SizedBox(height: 50.0),
                       Form(
                         key: _formKey,
                         child: Column(
                           children: [
                             TextField(
-                              decoration: ThemeHelper().textInputDecoration('New password', 'Enter new password'),
+                              decoration: ThemeHelper().textInputDecoration(
+                                  'Old password', 'Enter old password'),
+                              onChanged: (v) {
+                                setState(() {
+                                  oldPass = v;
+                                });
+                              },
+                            ),
+                            SizedBox(height: 30.0),
+                            TextField(
+                              decoration: ThemeHelper().textInputDecoration(
+                                  'New password', 'Enter new password'),
+                              onChanged: (v) {
+                                setState(() {
+                                  newPass = v;
+                                });
+                              },
                             ),
                             SizedBox(height: 30.0),
                             TextField(
                               obscureText: true,
-                              decoration: ThemeHelper().textInputDecoration('Confirm password', 'Confirm password'),
+                              decoration: ThemeHelper().textInputDecoration(
+                                  'Confirm password', 'Confirm password'),
+                              onChanged: (v) {
+                                setState(() {
+                                  rePass = v;
+                                });
+                              },
                             ),
 //
-                            SizedBox(height: 90),
+                            SizedBox(height: 60),
                             Container(
-                              decoration: ThemeHelper().buttonBoxDecoration(context),
+                              decoration:
+                                  ThemeHelper().buttonBoxDecoration(context),
                               child: ElevatedButton(
                                 style: ThemeHelper().buttonStyle(),
                                 onPressed: () {
-                                  final snackBar = SnackBar(
-                                    content: const Text('Reset successful!'),
-                                    action: SnackBarAction(
-                                      label: 'OK',
-                                      onPressed: () {
-                                        Navigator.pushNamed(context, '/');
-                                      },
-                                    ),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-
+                                  FocusScope.of(context).unfocus();
+                                  if (newPass != rePass) {
+                                    final snackBar = SnackBar(
+                                      content: const Text(
+                                          "Password doesn't Matches"),
+                                      action: SnackBarAction(
+                                        label: 'OK',
+                                      ),
+                                    );
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(snackBar);
+                                  } else {
+                                    _changePassword(oldPass,newPass);
+                                  }
                                 }, //after login redirect to homepage
                                 child: Padding(
                                   padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                                  child: Text('Reset password'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  child: Text('Reset password'.toUpperCase(),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white)),
                                 ),
                               ),
                             ),
@@ -142,5 +174,41 @@ class _passState extends State<pass> {
     );
   }
 
+  void _changePassword(String currentPassword, String newPassword) async {
+    final user = await FirebaseAuth.instance.currentUser;
+    final cred = EmailAuthProvider.credential(
+        email: user.email, password: currentPassword);
 
+    user.reauthenticateWithCredential(cred).then((value) {
+      user.updatePassword(newPassword).then((_) {
+        //Success, do something
+        final snackBar = SnackBar(
+          content: const Text('Reset successful!'),
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => Home()));
+            },
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }).catchError((error) {
+        final snackBar = SnackBar(
+          content: Text("Password can't be changed ${error.toString()}"),
+          action: SnackBarAction(
+            label: 'OK',
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      });
+    }).catchError((err) {
+      final snackBar = SnackBar(
+        content: Text("${err.toString()}"),
+        action: SnackBarAction(
+          label: 'OK',
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
+  }
 }

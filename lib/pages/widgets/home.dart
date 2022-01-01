@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:barcode_scan2/platform_wrapper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,7 +20,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
   // String result = "";
   // Future _scanQR() async {
   //   try {
@@ -77,6 +77,9 @@ class _HomeState extends State<Home> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
+
+  final Set<Marker> markers = new Set();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,5 +156,52 @@ class _HomeState extends State<Home> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+
+  fetchAllContact() async {
+    List contactList = [];
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("collection").get();
+    for (int i = 0; i < querySnapshot.size; i++) {
+      var a = querySnapshot.docs[i];
+      print('Query Snapshot -- ${a.id}');
+    }
+  }
+
+  // Set<Marker> getmarkers() { //markers to place on map
+  //   setState(() {
+  //     markers.add(Marker( //add first marker
+  //       markerId: MarkerId(showLocation.toString()),
+  //       position: showLocation, //position of marker
+  //       infoWindow: InfoWindow( //popup info
+  //         title: 'Marker Title First ',
+  //         snippet: 'My Custom Subtitle',
+  //       ),
+  //       icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+  //     ));
+  //
+  //     markers.add(Marker( //add second marker
+  //       markerId: MarkerId(showLocation.toString()),
+  //       position: LatLng(27.7099116, 85.3132343), //position of marker
+  //       infoWindow: InfoWindow( //popup info
+  //         title: 'Marker Title Second ',
+  //         snippet: 'My Custom Subtitle',
+  //       ),
+  //       icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+  //     ));
+  //
+  //     markers.add(Marker( //add third marker
+  //       markerId: MarkerId(showLocation.toString()),
+  //       position: LatLng(27.7137735, 85.315626), //position of marker
+  //       infoWindow: InfoWindow( //popup info
+  //         title: 'Marker Title Third ',
+  //         snippet: 'My Custom Subtitle',
+  //       ),
+  //       icon: BitmapDescriptor.defaultMarker, //Icon for Marker
+  //     ));
+  //
+  //     //add more markers here
+  //   });
+  //
+  //   return markers;
+  // }
 }
 

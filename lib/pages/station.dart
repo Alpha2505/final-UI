@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import "package:flutter/material.dart";
+import 'package:login_ui/common/theme_helper.dart';
 import 'package:login_ui/model/stationModel.dart';
 import 'package:login_ui/pages/widgets/stationdetail.dart';
 
@@ -8,8 +10,16 @@ class station extends StatefulWidget {
 }
 
 class _stationState extends State<station> {
+  TextEditingController searchController;
+  String searchtxt = '';
 
-  static List<String> stationname = ['ChargeGrid','Fortnum','Charzer','PlugNGo','Tata Power'];
+  static List<String> stationname = [
+    'ChargeGrid',
+    'Fortnum',
+    'Charzer',
+    'PlugNGo',
+    'Tata Power'
+  ];
 
   static List url = [
     'https://2.bp.blogspot.com/-OXaiN6n7oXI/T5TZvk0h6jI/AAAAAAAAA8s/_EfDAyzmRAo/s1600/biogas+station.jpg',
@@ -40,54 +50,110 @@ class _stationState extends State<station> {
     'Phone No: 9874568952',
     'Phone No: 7584968542',
     'Phone No: 9974586248',
-    'Phone No: 8997845689'];
+    'Phone No: 8997845689'
+  ];
 
-  final List<StationModel> Stationdata = List.generate(
-      stationname.length,
-          (index)
-      => StationModel('${stationname[index]}', '${url[index]}', '${stationid[index]}','${stationdesc[index]}', '${stationcontact[index]}'));
+  // final List<StationModel> Stationdata = List.generate(
+  //     stationname.length,
+  //     (index) => StationModel(
+  //         '${stationname[index]}',
+  //         '${url[index]}',
+  //         '${stationid[index]}',
+  //         '${stationdesc[index]}',
+  //         '${stationcontact[index]}'));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          brightness: Brightness.dark,
-          backgroundColor: Colors.transparent,
-          elevation: 0.0,
-          centerTitle: true,
-          title: Text('EV Charging Station Near me'),
-          toolbarHeight: 75,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20)),
-              gradient: LinearGradient(
-                  colors: [Colors.teal.shade400, Colors.grey],
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter
-              ),
-            ),
+      appBar: AppBar(
+        brightness: Brightness.dark,
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        centerTitle: true,
+        title: Text('EV Charging Station Near me'),
+        toolbarHeight: 75,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20)),
+            gradient: LinearGradient(
+                colors: [Colors.teal.shade400, Colors.grey],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter),
           ),
         ),
-
-        body: ListView.builder(
-            itemCount: Stationdata.length,
-            itemBuilder: (context,index){
-              return Card(
-                child: ListTile(
-                  title: Text(Stationdata[index].name),
-                  leading: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: Image.network(Stationdata[index].ImageUrl),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
+            child: TextField(
+              decoration: ThemeHelper()
+                  .textInputDecoration('Search', 'Start typing...'),
+              controller: searchController,
+              textInputAction: TextInputAction.search,
+              textCapitalization: TextCapitalization.words,
+              autofocus: true,
+              onChanged: (val) {
+                setState(() {
+                  searchtxt = val;
+                });
+                print(searchtxt);
+              },
+            ),
+          ),
+          StreamBuilder(
+              stream: (searchtxt != "" && searchtxt != null)
+                  ? FirebaseFirestore.instance
+                      .collection("stations")
+                      .orderBy("stationName")
+                      .startAt([searchtxt]).endAt(
+                          [searchtxt + '\uf8ff']).snapshots()
+                  : FirebaseFirestore.instance
+                      .collection("stations")
+                      .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                return Expanded(
+                  child: ListView(
+                    children: snapshot.data.docs.map((document) {
+                      return Card(
+                        child: ListTile(
+                          title: Text(document['stationName']),
+                          leading: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: Image.network(document['imgUrl']),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => Stationdetail(
+                                      stationModel: StationModel(
+                                        name: document['stationName'],
+                                        id: document['stationId'],
+                                        address: document['address'],
+                                        availability: document['availability'],
+                                        connectorType:
+                                            document['connectorType'],
+                                        contact: document['stationContact'],
+                                        ImageUrl: document['imgUrl'],
+                                      ),
+                                    )));
+                          },
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => Stationdetail(stationModel: Stationdata[index],)));
-                  },
-                ),
-
-              );
-            })
+                );
+              }),
+        ],
+      ),
     );
   }
 }

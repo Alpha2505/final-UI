@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:login_ui/common/theme_helper.dart';
 
 class Prof extends StatefulWidget{
@@ -9,6 +10,7 @@ class Prof extends StatefulWidget{
 }
 
 class _ProfState extends State<Prof> {
+  String newName ='';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +51,17 @@ class _ProfState extends State<Prof> {
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
                     ),
                     TextField(
-                      obscureText: true,
+                      textCapitalization: TextCapitalization.words,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(256),
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^(?! )[A-Za-z ]*')),
+                      ],
+                      onChanged: (v){
+                        setState(() {
+                          newName =v;
+                        });
+                      },
                       decoration: InputDecoration(
                           contentPadding: EdgeInsets.symmetric(vertical: 0,
                               horizontal: 10),
@@ -69,7 +81,7 @@ class _ProfState extends State<Prof> {
                       child: ElevatedButton(
                         style: ThemeHelper().buttonStyle(),
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.pop(context,newName!=''?newName:null);
                         }, //after login redirect to homepage
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(40, 10, 40, 10),

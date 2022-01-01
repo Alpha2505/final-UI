@@ -1,5 +1,19 @@
-class StationModel{
-  final String name,ImageUrl,id,desc,contact;
+class StationModel {
+  final String name;
+  final String ImageUrl;
+  final String id;
+  final String address;
+  final String contact;
+  final String connectorType;
+  final int availability;
 
-  StationModel(this.name, this.ImageUrl, this.id, this.desc, this.contact);
+  StationModel({
+    this.name,
+    this.ImageUrl,
+    this.id,
+    this.address,
+    this.contact,
+    this.connectorType,
+    this.availability,
+  });
 }

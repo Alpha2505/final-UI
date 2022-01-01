@@ -34,8 +34,10 @@ class Stationdetail extends StatelessWidget {
         children: [
           Image.network(stationModel.ImageUrl),
           Text(stationModel.id),
-          Text(stationModel.desc),
+          Text(stationModel.address),
+          Text(stationModel.connectorType),
           Text(stationModel.contact),
+          Text('Slots Available :::: ${stationModel.availability}'),
           SizedBox(height: 90),
           Container(
             decoration: ThemeHelper().buttonBoxDecoration(context),

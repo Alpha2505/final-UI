@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:login_ui/common/theme_helper.dart';
 
 class pin extends StatefulWidget{
@@ -9,6 +10,8 @@ class pin extends StatefulWidget{
 }
 
 class _pinState extends State<pin> {
+  String newPin;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +52,11 @@ class _pinState extends State<pin> {
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
                     ),
                     TextField(
-                      obscureText: true,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(6),
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: 0,
                             horizontal: 10),
@@ -61,6 +68,11 @@ class _pinState extends State<pin> {
                             borderSide: BorderSide(color: Colors.grey)
                         ),
                       ),
+                      onChanged: (v){
+                        setState(() {
+                          newPin = v;
+                        });
+                      },
                     ),
 
                     SizedBox(height: 400),
@@ -69,7 +81,7 @@ class _pinState extends State<pin> {
                       child: ElevatedButton(
                         style: ThemeHelper().buttonStyle(),
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.pop(context,newPin!=''?newPin:null);
                         }, //after login redirect to homepage
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(40, 10, 40, 10),

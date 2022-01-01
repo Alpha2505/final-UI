@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:login_ui/pages/widgets/profile_page.dart';
 import 'package:login_ui/pages/widgets/vehicle.dart';
+import 'package:login_ui/utils/sharedprefs.dart';
 
 import '../login_page.dart';
 import '../prof2.dart';
@@ -63,11 +64,12 @@ class _NavigationDrawerWidgetState extends State<NavigationDrawerWidget> {
     );
   }
 
-  void selectedItem(BuildContext context, int index) {
+  void selectedItem(BuildContext context, int index) async {
     switch (index) {
       case 0:
+        var UID = await getUIDValuesSF();
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => Profile(),
+          builder: (context) => Profile(UID: UID,),
         ));
 
         break;

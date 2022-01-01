@@ -7,42 +7,45 @@ import 'package:login_ui/common/theme_helper.dart';
 import 'package:login_ui/pages/reset_password_page.dart';
 import 'package:login_ui/pages/widgets/home.dart';
 import 'package:login_ui/pages/widgets/personal_info.dart';
+import 'package:login_ui/utils/sharedprefs.dart';
 
 
-
-class LoginPage extends StatefulWidget{
-  const LoginPage({Key key}): super(key: key);
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>{
+class _LoginPageState extends State<LoginPage> {
   double _headerHeight = 75;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController email = TextEditingController();
+
   // String phoneNumber = "";
   final TextEditingController phone = TextEditingController();
   final TextEditingController pass = TextEditingController();
 
   final _auth = FirebaseAuth.instance;
 
-  void signIn(String email, String pass) async{
-    if(_formKey.currentState.validate()){
+  void signIn(String email, String pass) async {
+    if (_formKey.currentState.validate()) {
       await _auth.signInWithEmailAndPassword(email: email, password: pass)
           .then((uid) => {
-        Fluttertoast.showToast(msg: "Login Successful"),
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) => Home()),
-                (route) => false)
-      }).catchError((e){
-        Fluttertoast.showToast(msg: e.message);
-      });
-    }
+      print("User details:::${uid.user.uid}"),
+      addUIDToSF(uid.user.uid),
+          Fluttertoast.showToast(msg: "Login Successful"),
+    Navigator.pushAndRemoveUntil(context,
+    MaterialPageRoute(builder: (context) => Home()),
+    (route) => false)
+    }).catchError((e){
+    Fluttertoast.showToast(msg: e.message);
+    });
+  }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         brightness: Brightness.dark,
@@ -56,9 +59,10 @@ class _LoginPageState extends State<LoginPage>{
         toolbarHeight: 185,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(20)),
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20)),
             gradient: LinearGradient(
-                colors: [Colors.teal.shade400,Colors.grey],
+                colors: [Colors.teal.shade400, Colors.grey],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter
             ),
@@ -75,14 +79,15 @@ class _LoginPageState extends State<LoginPage>{
               height: _headerHeight,
             ),
             SafeArea(
-              child: Container(  //this is login form
+              child: Container( //this is login form
                 padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 child: Column(
                   children: [
                     Text(
                       'Welcome',
-                      style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 40, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 30.0),
                     Form(
@@ -91,20 +96,23 @@ class _LoginPageState extends State<LoginPage>{
                         children: [
 
                           TextFormField(
-                            decoration: ThemeHelper().textInputDecoration('Email', 'Enter your email'),
+                            decoration: ThemeHelper().textInputDecoration(
+                                'Email', 'Enter your email'),
                             autofocus: false,
                             controller: email,
                             keyboardType: TextInputType.emailAddress,
-                            validator: (value){
-                              if(value.isEmpty){
-                                return("Please enter your email");
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return ("Please enter your email");
                               }
-                              if(!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]").hasMatch(value)){
-                                return("Please enter valid email");
+                              if (!RegExp(
+                                  "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
+                                  .hasMatch(value)) {
+                                return ("Please enter valid email");
                               }
                               return null;
                             },
-                            onSaved: (value){
+                            onSaved: (value) {
                               email.text = value;
                             },
                             textInputAction: TextInputAction.next,
@@ -112,19 +120,20 @@ class _LoginPageState extends State<LoginPage>{
                           SizedBox(height: 30.0),
                           TextFormField(
                             obscureText: true,
-                            decoration: ThemeHelper().textInputDecoration('Password', 'Enter password'),
+                            decoration: ThemeHelper().textInputDecoration(
+                                'Password', 'Enter password'),
                             autofocus: false,
                             controller: pass,
-                            validator: (value){
+                            validator: (value) {
                               RegExp regex = new RegExp(r'^.{6,}$');
-                              if(value.isEmpty){
-                                return("Password is required for login");
+                              if (value.isEmpty) {
+                                return ("Password is required for login");
                               };
-                              if(!regex.hasMatch(value)){
-                                return("Please enter valid password(Min. 6 characters)");
+                              if (!regex.hasMatch(value)) {
+                                return ("Please enter valid password(Min. 6 characters)");
                               }
                             },
-                            onSaved: (value){
+                            onSaved: (value) {
                               pass.text = value;
                             },
                             textInputAction: TextInputAction.done,
@@ -140,11 +149,15 @@ class _LoginPageState extends State<LoginPage>{
                                   TextSpan(
                                     text: 'Forgot password?',
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = (){
+                                      ..onTap = () {
                                         _bottomSheet(context);
                                       },
 
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                    style: TextStyle(fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme
+                                            .of(context)
+                                            .primaryColor),
                                   ),
                                 ],
                               ),
@@ -152,7 +165,8 @@ class _LoginPageState extends State<LoginPage>{
                           ),
                           SizedBox(height: 20.0),
                           Container(
-                            decoration: ThemeHelper().buttonBoxDecoration(context),
+                            decoration: ThemeHelper().buttonBoxDecoration(
+                                context),
 
                             child: ElevatedButton(
                               style: ThemeHelper().buttonStyle(),
@@ -161,7 +175,10 @@ class _LoginPageState extends State<LoginPage>{
                               }, //after login redirect to homepage
                               child: Padding(
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                                child: Text('Sign In'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                                child: Text('Sign In'.toUpperCase(),
+                                    style: TextStyle(fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
                               ),
                             ),
                           ),
@@ -175,10 +192,17 @@ class _LoginPageState extends State<LoginPage>{
                                   TextSpan(
                                     text: ' Sign Up',
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = (){
-                                        Navigator.push(context, MaterialPageRoute(builder: (context) => PersonalInfo()));
+                                      ..onTap = () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PersonalInfo()));
                                       },
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme
+                                            .of(context)
+                                            .primaryColor),
                                   ),
                                 ],
                               ),
@@ -200,8 +224,7 @@ class _LoginPageState extends State<LoginPage>{
   }
 
 
-
-  _bottomSheet(context){
+  _bottomSheet(context) {
     showModalBottomSheet(
         context: context,
         shape: RoundedRectangleBorder(
@@ -210,19 +233,19 @@ class _LoginPageState extends State<LoginPage>{
               topRight: Radius.circular(30.0)),
         ),
         isScrollControlled: true,
-        builder: (BuildContext c){
+        builder: (BuildContext c) {
           return Wrap(
             children: <Widget>[
               Container(
                 margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 alignment: Alignment.center,
                 child: SingleChildScrollView(
-                  child:Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ListTile(
                         trailing: Icon(Icons.close),
-                        onTap: (){
+                        onTap: () {
                           Navigator.pop(context);
                         },
                       ),
@@ -230,28 +253,46 @@ class _LoginPageState extends State<LoginPage>{
                       Padding(
                         padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
                         child: Text('Forgot your password?',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                       ),
                       SizedBox(height: 30),
-                      new Text('Enter your mobile number to reset your password',
-                          style: TextStyle(fontSize: 15, color: Colors.grey.shade600)),
+                      new Text(
+                          'Enter your mobile number to reset your password',
+                          style: TextStyle(
+                              fontSize: 15, color: Colors.grey.shade600)),
                       SizedBox(height: 30),
                       Padding(
                         padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).viewInsets.bottom
+                            bottom: MediaQuery
+                                .of(context)
+                                .viewInsets
+                                .bottom
                         ),
 
                         child: TextField(
-                          decoration: InputDecoration(labelText: 'Mobile No.',
+                          decoration: InputDecoration(
+                            labelText: 'Mobile No.',
                             hintText: '',
                             fillColor: Colors.white,
                             filled: true,
                             contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(100.0), borderSide: BorderSide(color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(100.0), borderSide: BorderSide(color: Colors.grey.shade400)),
-                            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(100.0), borderSide: BorderSide(color: Colors.red, width: 2.0)),
-                            focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(100.0), borderSide: BorderSide(color: Colors.red, width: 2.0)),
+                            focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(100.0),
+                                borderSide: BorderSide(color: Colors.grey)),
+                            enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(100.0),
+                                borderSide: BorderSide(
+                                    color: Colors.grey.shade400)),
+                            errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(100.0),
+                                borderSide: BorderSide(
+                                    color: Colors.red, width: 2.0)),
+                            focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(100.0),
+                                borderSide: BorderSide(
+                                    color: Colors.red, width: 2.0)),
                             prefix: Padding(
                               padding: EdgeInsets.all(4),
                               child: Text('+91'),
@@ -271,12 +312,16 @@ class _LoginPageState extends State<LoginPage>{
                           autofocus: true,
                           style: ThemeHelper().buttonStyle(),
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPassword(phone.text)));
-
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) =>
+                                    ResetPassword(phone.text)));
                           },
                           child: Padding(
                             padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                            child: Text('Submit'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            child: Text('Submit'.toUpperCase(),
+                                style: TextStyle(fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
 
                           ),
                         ),

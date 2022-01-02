@@ -6,6 +6,7 @@ class StationModel {
   final String contact;
   final String connectorType;
   final int availability;
+  final bool workingCondition;
 
   StationModel({
     this.name,
@@ -15,5 +16,6 @@ class StationModel {
     this.contact,
     this.connectorType,
     this.availability,
+    this.workingCondition,
   });
 }

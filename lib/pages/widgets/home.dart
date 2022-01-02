@@ -69,7 +69,7 @@ class _HomeState extends State<Home> {
     newGoogleMapController
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    String address = await AssistantMethods.searchCoordinateAddress(position);
+    var address = await AssistantMethods.searchCoordinateAddress(position);
     print('This is your Address::' + address);
   }
 

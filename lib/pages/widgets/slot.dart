@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:login_ui/common/theme_helper.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +8,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../feedback.dart';
 
 class slot extends StatefulWidget {
-  slot({Key key, this.title}) : super(key: key);
+  slot({Key key, this.id}) : super(key: key);
+
   @override
   State<slot> createState() => _slotState();
-  final String title;
+  final String id;
 }
 
 class _slotState extends State<slot> {
@@ -51,6 +53,7 @@ class _slotState extends State<slot> {
   }
 
   void openCheckout() async {
+
     var options = {
       'key': 'rzp_test_kOmQ6n4iunyQhQ',
       'amount': totalAmount * 100,
@@ -68,8 +71,16 @@ class _slotState extends State<slot> {
     }
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+  Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
     Fluttertoast.showToast(msg: 'SUCCESS: ' + response.paymentId);
+    QuerySnapshot querySnap = await FirebaseFirestore.instance.collection('stations').where('stationId', isEqualTo: widget.id).get();
+    QueryDocumentSnapshot doc = querySnap.docs[0];  // Assumption: the query returns only one document, THE doc you are looking for.
+    DocumentReference docRef = doc.reference;
+    await FirebaseFirestore.instance.collection('stations').doc(docRef.id).update({"availability": FieldValue.increment(-1)});
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => FeedBack(stationId: widget.id,)),
+      (route) => false,
+    );
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -85,10 +96,11 @@ class _slotState extends State<slot> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(icon: Icon(
-            Icons.arrow_back),
-            onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => FeedBack()));
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // Navigator.of(context).push(MaterialPageRoute(builder: (context) => FeedBack()));
+              Navigator.pop(context);
             },
           ),
           brightness: Brightness.dark,
@@ -116,18 +128,11 @@ class _slotState extends State<slot> {
             children: [
               Center(
                 child: Container(
-                  height: 80,
                   width: 200,
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Enter ID',
+                  child: Card(
+                    child: ListTile(
+                      title: Center(child: Text('Station ID ::: ${widget.id}')),
                     ),
-                    controller: myController,
-                    onChanged: (text) {
-                      inputId = text;
-                      print(inputId);
-                    },
                   ),
                 ),
               ),
@@ -158,7 +163,7 @@ class _slotState extends State<slot> {
                                 // Retrieve the text the that user has entered by using the
                                 // TextEditingController.
                                 content: Text(
-                                    "Station-ID - ${inputId}\nSlot - ${dropdownvalue}"));
+                                    "Station-ID - ${widget.id}\nSlot - ${dropdownvalue}"));
                           },
                         );
                       },

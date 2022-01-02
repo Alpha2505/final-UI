@@ -143,6 +143,7 @@ class _stationState extends State<station> {
                                             document['connectorType'],
                                         contact: document['stationContact'],
                                         ImageUrl: document['imgUrl'],
+                                        workingCondition: document['workingCondition'],
                                       ),
                                     )));
                           },

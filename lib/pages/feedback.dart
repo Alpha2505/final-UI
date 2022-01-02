@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:login_ui/common/theme_helper.dart';
 import 'package:login_ui/pages/widgets/home.dart';
 
-class FeedBack extends StatefulWidget{
+class FeedBack extends StatefulWidget {
+  final String stationId;
+
+  const FeedBack({Key key, this.stationId}) : super(key: key);
   @override
-  State<StatefulWidget> createState(){
+  State<StatefulWidget> createState() {
     return _FeedBackState();
   }
 }
@@ -16,7 +19,7 @@ class _FeedBackState extends State<FeedBack> {
   final _formKey = GlobalKey<FormState>();
   bool agree = true;
   final feed = new TextEditingController();
-
+  bool isSwitched = true;
 
   @override
   Widget build(BuildContext context) {
@@ -26,19 +29,21 @@ class _FeedBackState extends State<FeedBack> {
         backgroundColor: Colors.transparent,
         elevation: 0.0,
         centerTitle: true,
-        title: Image.asset('assets/images/ev.png',
+        title: Image.asset(
+          'assets/images/ev.png',
           fit: BoxFit.contain,
           height: 250,
         ),
         toolbarHeight: 175,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(20)),
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20)),
             gradient: LinearGradient(
-                colors: [Colors.teal.shade400,Colors.grey],
+                colors: [Colors.teal.shade400, Colors.grey],
                 begin: Alignment.bottomCenter,
-                end: Alignment.topCenter
-            ),
+                end: Alignment.topCenter),
           ),
         ),
       ),
@@ -50,12 +55,12 @@ class _FeedBackState extends State<FeedBack> {
             //   height: _headerHeight,
             // ),
             SafeArea(
-              child: Container(  //this is login form
+              child: Container(
+                //this is login form
                 padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 child: Column(
                   children: [
-
                     SizedBox(height: 30.0),
                     Form(
                       key: _formKey,
@@ -63,44 +68,80 @@ class _FeedBackState extends State<FeedBack> {
                         children: [
                           Text(
                             'Please give us your feedback! :)',
-                            style: TextStyle(fontSize: 20,),
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
                           ),
                           SizedBox(height: 60.0),
                           TextFormField(
-                            decoration: ThemeHelper().textInputDecoration('Feedback', 'Enter your feedback'),
+                            decoration: ThemeHelper().textInputDecoration(
+                                'Feedback', 'Enter your feedback'),
                             autofocus: false,
                             controller: feed,
                             keyboardType: TextInputType.name,
-                            validator: (value){
+                            validator: (value) {
                               RegExp regex = new RegExp(r'^.{3,}$');
-                              if(value.isEmpty){
-                                return("Feedback is required");
-                              };
-                              if(!regex.hasMatch(value)){
-                                return("Please enter valid name(Min. 3 characters)");
+                              if (value.isEmpty) {
+                                return ("Feedback is required");
+                              }
+                              ;
+                              if (!regex.hasMatch(value)) {
+                                return ("Please enter valid name(Min. 3 characters)");
                               }
                               return null;
                             },
-                            onSaved: (value){
+                            onSaved: (value) {
                               feed.text = value;
                             },
                             textInputAction: TextInputAction.next,
                           ),
-
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Is EV Station working?\t'),
+                              Switch(
+                                value: isSwitched,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isSwitched = value;
+                                    print(isSwitched);
+                                  });
+                                },
+                                activeTrackColor: Colors.lightGreenAccent,
+                                activeColor: Colors.green,
+                              ),
+                            ],
+                          ),
                           SizedBox(height: 175),
                           Container(
-                            decoration: ThemeHelper().buttonBoxDecoration(context),
+                            decoration:
+                                ThemeHelper().buttonBoxDecoration(context),
                             child: ElevatedButton(
                               style: ThemeHelper().buttonStyle(),
-                              onPressed: () {
+                              onPressed: () async {
+                                final user =
+                                    await FirebaseAuth.instance.currentUser;
                                 //adding into database
-                                Map <String, dynamic> data = {"feed": feed.text, };
-                                FirebaseFirestore.instance.collection("feedback").add(data);
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Home()));
+                                Map<String, dynamic> data = {
+                                  "uid": user.uid,
+                                  "userName":user.email,
+                                  "feed": feed.text,
+                                  "workingCondition":isSwitched,
+                                  "stationId":widget.stationId,
+                                };
+                                FirebaseFirestore.instance
+                                    .collection("feedback")
+                                    .add(data);
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => Home()));
                               }, //after login redirect to homepage
                               child: Padding(
                                 padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                                child: Text('submit'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                                child: Text('submit'.toUpperCase(),
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
                               ),
                             ),
                           ),
@@ -113,7 +154,6 @@ class _FeedBackState extends State<FeedBack> {
             ),
           ],
         ),
-
       ),
     );
   }
